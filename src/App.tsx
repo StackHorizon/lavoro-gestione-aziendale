@@ -19,7 +19,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <AuthProvider>
-        <BrowserRouter>
+        <BrowserRouter basename="/lavoro-gestione-aziendale">
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/clienti" element={<Clienti />} />
