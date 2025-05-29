@@ -31,6 +31,7 @@ const Lavori = () => {
         descrizione: '',
         stato: 'in corso' as Lavoro['stato']
     });
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -41,6 +42,7 @@ const Lavori = () => {
     }, [isAuthenticated, navigate]);
 
     const fetchLavori = async (id: number) => {
+        setLoading(true);
         try {
             const res = await fetch(`http://localhost:3000/sh/getLavori/${id}`, {
                 method: "GET",
@@ -52,6 +54,8 @@ const Lavori = () => {
             setLavori(data.data);
         } catch (error) {
             toast({title: "Errore durante il caricamento dei lavori", variant: "destructive"});
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -77,48 +81,55 @@ const Lavori = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setLoading(true);
 
         if (editingLavoro) {
             try {
                 const response = await fetch(`http://localhost:3000/sh/updateLavoro/${editingLavoro.id}`, {
                     method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {"Content-Type": "application/json"},
                     credentials: "include",
                     body: JSON.stringify(formData),
                 });
 
+                const data = await response.json();
+
                 if (response.ok) {
                     await fetchLavori(parseInt(sessionStorage.getItem("clienteId") || '0'));
                 }
-                const data = await response.json();
 
-                toast({ title: data.message, variant: (response.ok ? "default" : "destructive")});
+                toast({title: data.message, variant: (response.ok ? "default" : "destructive")});
             } catch (error) {
-                toast({ title: "Errore durante la richiesta", variant: "destructive" });
+                toast({title: "Errore durante la richiesta", variant: "destructive"});
+            } finally {
+                setLoading(false);
             }
         } else {
             try {
                 const res = await fetch("http://localhost:3000/sh/addLavoro", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: {"Content-Type": "application/json"},
                     credentials: "include",
-                    body: JSON.stringify({ ...formData, idCliente: sessionStorage.getItem("clienteId") }),
+                    body: JSON.stringify({...formData, idCliente: sessionStorage.getItem("clienteId")}),
                 });
                 if (!res.ok) throw new Error("Errore nella fetch POST");
                 const data = await res.json();
                 await fetchLavori(parseInt(sessionStorage.getItem("clienteId") || '0'));
-                toast({ title: data.message, variant: (res.ok ? "default" : "destructive") });
+                toast({title: data.message, variant: (res.ok ? "default" : "destructive")});
             } catch (error) {
-                toast({ title: "Errore durante la richiesta", variant: "destructive" });
+                toast({title: "Errore durante la richiesta", variant: "destructive"});
+            } finally {
+                setLoading(false);
             }
         }
 
         setIsDialogOpen(false);
-        setFormData({ titolo: '', descrizione: '', stato: 'in corso' });
+        setFormData({titolo: '', descrizione: '', stato: 'in corso'});
     };
 
 
     const handleDeleteLavoro = async (id: string) => {
+        setLoading(true);
         try {
             const res = await fetch(`http://localhost:3000/sh/deleteLavoro/${id}`, {
                 method: "DELETE",
@@ -133,6 +144,8 @@ const Lavori = () => {
             await fetchLavori(parseInt(sessionStorage.getItem("clienteId") || '0'));
         } catch (error) {
             toast({title: "Errore durante la richiesta", variant: "destructive"});
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -183,7 +196,7 @@ const Lavori = () => {
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-4">
                             <Button onClick={handleBack} variant="outline" size="sm"
-                                    className="flex items-center gap-2">
+                                    className="flex items-center gap-2" disabled={loading}>
                                 <ArrowLeft className="h-4 w-4"/>
                                 Torna ai Clienti
                             </Button>
@@ -201,7 +214,8 @@ const Lavori = () => {
                             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button onClick={handleAddLavoro}
-                                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700">
+                                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                                            disabled={loading}>
                                         <Plus className="h-4 w-4"/>
                                         Aggiungi Lavoro
                                     </Button>
@@ -220,6 +234,7 @@ const Lavori = () => {
                                                 value={formData.titolo}
                                                 onChange={(e) => setFormData({...formData, titolo: e.target.value})}
                                                 required
+                                                disabled={loading}
                                             />
                                         </div>
                                         <div>
@@ -233,6 +248,7 @@ const Lavori = () => {
                                                 })}
                                                 required
                                                 rows={3}
+                                                disabled={loading}
                                             />
                                         </div>
                                         <div>
@@ -241,7 +257,8 @@ const Lavori = () => {
                                                     onValueChange={(value: Lavoro['stato']) => setFormData({
                                                         ...formData,
                                                         stato: value
-                                                    })}>
+                                                    })}
+                                                    disabled={loading}>
                                                 <SelectTrigger>
                                                     <SelectValue/>
                                                 </SelectTrigger>
@@ -255,10 +272,12 @@ const Lavori = () => {
                                         </div>
                                         <div className="flex justify-end gap-2">
                                             <Button type="button" variant="outline"
-                                                    onClick={() => setIsDialogOpen(false)}>
+                                                    onClick={() => setIsDialogOpen(false)}
+                                                    disabled={loading}>
                                                 Annulla
                                             </Button>
-                                            <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                                            <Button type="submit" className="bg-blue-600 hover:bg-blue-700"
+                                                    disabled={loading}>
                                                 {editingLavoro ? 'Aggiorna' : 'Aggiungi'}
                                             </Button>
                                         </div>
@@ -268,54 +287,80 @@ const Lavori = () => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Titolo</TableHead>
-                                    <TableHead>Descrizione</TableHead>
-                                    <TableHead>Stato</TableHead>
-                                    <TableHead className="text-center">Azioni</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {lavori.map((lavoro) => (
-                                    <TableRow
-                                        key={lavoro.id}
-                                        className="hover:bg-gray-50 cursor-pointer"
-                                        onClick={() => handleLavoroClick(lavoro.id)}
-                                    >
-                                        <TableCell className="font-medium">{lavoro.titolo}</TableCell>
-                                        <TableCell className="max-w-xs truncate">{lavoro.descrizione}</TableCell>
-                                        <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatoColor(lavoro.stato)}`}>
-                        {getStatoLabel(lavoro.stato)}
-                      </span>
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <div className="flex justify-center gap-2"
-                                                 onClick={(e) => e.stopPropagation()}>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleEditLavoro(lavoro)}
-                                                    className="h-8 w-8 p-0"
+                        {loading ? (
+                            <div className="flex justify-center py-10">
+                                <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg"
+                                     fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor"
+                                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                            </div>
+                        ) : (
+                            <div className="max-h-[calc(80vh-120px)] overflow-y-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Titolo</TableHead>
+                                            <TableHead>Descrizione</TableHead>
+                                            <TableHead>Stato</TableHead>
+                                            <TableHead className="text-center">Azioni</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {lavori.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell colSpan={4} className="text-center py-4 text-gray-500">
+                                                    Nessun lavoro trovato.
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            lavori.map((lavoro) => (
+                                                <TableRow
+                                                    key={lavoro.id}
+                                                    className="hover:bg-gray-50 cursor-pointer"
+                                                    onClick={() => !loading && handleLavoroClick(lavoro.id)}
                                                 >
-                                                    <Edit className="h-4 w-4"/>
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => handleDeleteLavoro(lavoro.id)}
-                                                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                                >
-                                                    <Trash2 className="h-4 w-4"/>
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                                    <TableCell className="font-medium">{lavoro.titolo}</TableCell>
+                                                    <TableCell
+                                                        className="max-w-xs truncate">{lavoro.descrizione}</TableCell>
+                                                    <TableCell>
+                              <span
+                                  className={`px-2 py-1 rounded-full text-xs font-medium ${getStatoColor(lavoro.stato)}`}>
+                                {getStatoLabel(lavoro.stato)}
+                              </span>
+                                                    </TableCell>
+                                                    <TableCell className="text-center">
+                                                        <div className="flex justify-center gap-2"
+                                                             onClick={(e) => e.stopPropagation()}>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleEditLavoro(lavoro)}
+                                                                className="h-8 w-8 p-0"
+                                                                disabled={loading}
+                                                            >
+                                                                <Edit className="h-4 w-4"/>
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleDeleteLavoro(lavoro.id)}
+                                                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                                                disabled={loading}
+                                                            >
+                                                                <Trash2 className="h-4 w-4"/>
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </main>

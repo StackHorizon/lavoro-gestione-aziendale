@@ -43,6 +43,7 @@ const Clienti = () => {
         email: "",
         cellulare: "",
     });
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -53,6 +54,7 @@ const Clienti = () => {
     }, [isAuthenticated, navigate]);
 
     const fetchClienti = async () => {
+        setIsLoading(true);
         try {
             const res = await fetch("http://localhost:3000/sh/getClienti", {
                 credentials: "include",
@@ -68,6 +70,8 @@ const Clienti = () => {
         } catch (error) {
             toast({title: "Errore caricamento clienti", variant: "destructive"});
             setClienti([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -95,7 +99,7 @@ const Clienti = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
+        setIsLoading(true);
         if (editingCliente) {
             try {
                 const response = await fetch(`http://localhost:3000/sh/updateCliente/${editingCliente.id}`, {
@@ -112,6 +116,8 @@ const Clienti = () => {
                 toast({ title: data.message, variant: (response.ok ? "default" : "destructive") });
             } catch (error) {
                 toast({ title: "Errore durante la richiesta", variant: "destructive" });
+            } finally {
+                setIsLoading(false);
             }
         } else {
             try {
@@ -128,6 +134,8 @@ const Clienti = () => {
                 toast({ title: data.message, variant: (res.ok ? "default" : "destructive")});
             } catch (error) {
                 toast({ title: "Errore durante la richiesta", variant: "destructive" });
+            } finally {
+                setIsLoading(false);
             }
         }
 
@@ -137,6 +145,7 @@ const Clienti = () => {
     };
 
     const handleDeleteCliente= async (id: string) => {
+        setIsLoading(true);
         try{
             const res = await fetch(`http://localhost:3000/sh/deleteCliente/${id}`, {
                 method: "DELETE",
@@ -152,12 +161,14 @@ const Clienti = () => {
 
         }catch(error){
             toast({title: "Errore durante la richiesta", variant: "destructive"});
+        } finally {
+            setIsLoading(false);
         }
         setClienti(clienti.filter((c) => c.id !== id));
-
     };
 
     const handleGeneratePDF = async (cliente: Cliente) => {
+        setIsLoading(true);
         try {
             const response = await fetch("http://localhost:3000/sh/generaPdf", {
                 method: "POST",
@@ -170,10 +181,9 @@ const Clienti = () => {
 
             if (!response.ok) throw new Error("Errore generazione PDF");
 
-            const blob = await response.blob(); // Riceviamo il file come BLOB (Binary Large Object)
+            const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
 
-            // Creiamo un link virtuale e lo clicchiamo per far partire il download
             const a = document.createElement("a");
             a.href = url;
             a.download = `cliente_${cliente.nome}_${cliente.cognome}.pdf`;
@@ -184,6 +194,8 @@ const Clienti = () => {
             toast({ title: "PDF generato e scaricato con successo!" , variant: (response.ok ? "default" : "destructive")});
         } catch (error) {
             toast({ title: "Errore generazione PDF", variant: "destructive" });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -302,65 +314,90 @@ const Clienti = () => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        {clienti.length === 0 ? (
+                        {isLoading ? (
+                            <div className="flex justify-center items-center py-20">
+                                <svg
+                                    className="animate-spin h-8 w-8 text-blue-600"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <circle
+                                        className="opacity-25"
+                                        cx="12"
+                                        cy="12"
+                                        r="10"
+                                        stroke="currentColor"
+                                        strokeWidth="4"
+                                    />
+                                    <path
+                                        className="opacity-75"
+                                        fill="currentColor"
+                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                    />
+                                </svg>
+                            </div>
+                        ) : clienti.length === 0 ? (
                             <p className="text-center py-10 text-gray-500">Nessun cliente trovato.</p>
                         ) : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Nome</TableHead>
-                                        <TableHead>Cognome</TableHead>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Cellulare</TableHead>
-                                        <TableHead className="text-center">Azioni</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {clienti.map((cliente) => (
-                                        <TableRow
-                                            key={cliente.id}
-                                            className="hover:bg-gray-50 cursor-pointer"
-                                            onClick={() => handleClienteClick(cliente.id)}
-                                        >
-                                            <TableCell className="font-medium">{cliente.nome}</TableCell>
-                                            <TableCell>{cliente.cognome}</TableCell>
-                                            <TableCell>{cliente.email}</TableCell>
-                                            <TableCell>{cliente.cellulare}</TableCell>
-                                            <TableCell className="text-center">
-                                                <div
-                                                    className="flex justify-center gap-2"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleEditCliente(cliente)}
-                                                        className="h-8 w-8 p-0"
-                                                    >
-                                                        <Edit className="h-4 w-4"/>
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleGeneratePDF(cliente)}
-                                                        className="h-8 w-8 p-0"
-                                                    >
-                                                        <FileText className="h-4 w-4"/>
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={() => handleDeleteCliente(cliente.id)}
-                                                        className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
-                                                    >
-                                                        <Trash2 className="h-4 w-4"/>
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
+                            <div className="max-h-[calc(80vh-120px)] overflow-y-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Nome</TableHead>
+                                            <TableHead>Cognome</TableHead>
+                                            <TableHead>Email</TableHead>
+                                            <TableHead>Cellulare</TableHead>
+                                            <TableHead className="text-center">Azioni</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {clienti.map((cliente) => (
+                                            <TableRow
+                                                key={cliente.id}
+                                                className="hover:bg-gray-50 cursor-pointer"
+                                                onClick={() => handleClienteClick(cliente.id)}
+                                            >
+                                                <TableCell className="font-medium">{cliente.nome}</TableCell>
+                                                <TableCell>{cliente.cognome}</TableCell>
+                                                <TableCell>{cliente.email}</TableCell>
+                                                <TableCell>{cliente.cellulare}</TableCell>
+                                                <TableCell className="text-center">
+                                                    <div
+                                                        className="flex justify-center gap-2"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => handleEditCliente(cliente)}
+                                                            className="h-8 w-8 p-0"
+                                                        >
+                                                            <Edit className="h-4 w-4"/>
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => handleGeneratePDF(cliente)}
+                                                            className="h-8 w-8 p-0"
+                                                        >
+                                                            <FileText className="h-4 w-4"/>
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => handleDeleteCliente(cliente.id)}
+                                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                                                        >
+                                                            <Trash2 className="h-4 w-4"/>
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         )}
                     </CardContent>
                 </Card>
