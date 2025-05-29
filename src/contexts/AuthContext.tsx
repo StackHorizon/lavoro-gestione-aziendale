@@ -22,25 +22,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('isAuthenticated');
+    const authStatus = sessionStorage.getItem('isAuthenticated');
     if (authStatus === 'true') {
       setIsAuthenticated(true);
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Credenziali demo - in produzione andrebbero verificate tramite API
-    if (email === 'admin@azienda.it' && password === 'admin123') {
-      setIsAuthenticated(true);
-      localStorage.setItem('isAuthenticated', 'true');
-      return true;
+    if(email !== '' && password !== ''){
+      const response = await fetch('http://localhost:3000/sh/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ username:email, password }),
+      });
+      if(response.status === 200){
+        setIsAuthenticated(true);
+        sessionStorage.setItem('isAuthenticated', 'true');
+        return true;
+      }else{
+        return false;
+      }
+    }else{
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem('isAuthenticated');
+    sessionStorage.removeItem('isAuthenticated');
   };
 
   return (
