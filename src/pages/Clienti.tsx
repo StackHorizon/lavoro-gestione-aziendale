@@ -182,7 +182,6 @@ const Clienti = () => {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-
             toast({ title: "PDF generato e scaricato con successo!" });
         } catch (error) {
             console.error("Errore durante la generazione del PDF:", error);
@@ -192,7 +191,8 @@ const Clienti = () => {
 
 
     const handleClienteClick = (clienteId: string) => {
-        navigate(`/lavori/${clienteId}`);
+        sessionStorage.setItem("clienteId", clienteId);
+        navigate(`/lavori`);
     };
 
     if (!isAuthenticated) {
