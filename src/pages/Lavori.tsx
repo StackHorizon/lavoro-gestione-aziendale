@@ -49,7 +49,7 @@ const Lavori = () => {
             });
             if (!res.ok) throw new Error("Errore nella fetch GET");
             const data = await res.json();
-            setLavori(data.message);
+            setLavori(data.data);
         } catch (error) {
             toast({title: "Errore durante il caricamento dei lavori", variant: "destructive"});
         }
@@ -138,7 +138,8 @@ const Lavori = () => {
 
 
     const handleLavoroClick = (lavoroId: string) => {
-        navigate(`/pagamenti/${lavoroId}`);
+        sessionStorage.setItem("lavoroId", lavoroId);
+        navigate(`/pagamenti`);
     };
 
     const getStatoColor = (stato: Lavoro['stato']) => {

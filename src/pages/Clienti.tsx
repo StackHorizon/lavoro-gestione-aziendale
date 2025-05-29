@@ -60,10 +60,10 @@ const Clienti = () => {
             });
             if (!res.ok) throw new Error("Errore caricamento clienti");
             const data = await res.json();
-            if (!Array.isArray(data.message)) {
+            if (!Array.isArray(data.data)) {
                 setClienti([]);
             } else {
-                setClienti(data.message.length > 0 ? data.message : []);
+                setClienti(data.data.length > 0 ? data.data : []);
             }
         } catch (error) {
             toast({title: "Errore caricamento clienti", variant: "destructive"});
@@ -105,12 +105,11 @@ const Clienti = () => {
                     body: JSON.stringify(formData),
                 });
 
+                const data = await response.json();
                 if (response.ok) {
                     setClienti(clienti.map(c => c.id === editingCliente.id ? { ...c, ...formData } : c));
-                    toast({ title: "Cliente aggiornato con successo!" });
-                } else {
-                    toast({ title: "Errore nell'aggiornamento del cliente", variant: "destructive" });
                 }
+                toast({ title: data.message, variant: (response.ok ? "default" : "destructive") });
             } catch (error) {
                 toast({ title: "Errore durante la richiesta", variant: "destructive" });
             }
@@ -126,7 +125,7 @@ const Clienti = () => {
                 if (!res.ok) throw new Error("Errore nella fetch POST");
                 const data  = await res.json();
                 await fetchClienti();
-                toast({ title: data.message});
+                toast({ title: data.message, variant: (res.ok ? "default" : "destructive")});
             } catch (error) {
                 toast({ title: "Errore durante la richiesta", variant: "destructive" });
             }
@@ -145,7 +144,7 @@ const Clienti = () => {
                 credentials: "include",
             });
             if(res.status === 200){
-                toast({title: "Cliente eliminato con successo!"});
+                toast({title: "Cliente eliminato con successo!", variant: (res.ok ? "default" : "destructive")});
                 await fetchClienti();
             }else{
                 throw new Error("Errore nella fetch DELETE");
@@ -155,7 +154,7 @@ const Clienti = () => {
             toast({title: "Errore durante la richiesta", variant: "destructive"});
         }
         setClienti(clienti.filter((c) => c.id !== id));
-        toast({title: "Cliente eliminato con successo!"});
+
     };
 
     const handleGeneratePDF = async (cliente: Cliente) => {
@@ -182,9 +181,8 @@ const Clienti = () => {
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-            toast({ title: "PDF generato e scaricato con successo!" });
+            toast({ title: "PDF generato e scaricato con successo!" , variant: (response.ok ? "default" : "destructive")});
         } catch (error) {
-            console.error("Errore durante la generazione del PDF:", error);
             toast({ title: "Errore generazione PDF", variant: "destructive" });
         }
     };
