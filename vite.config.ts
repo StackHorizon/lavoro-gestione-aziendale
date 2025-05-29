@@ -5,6 +5,8 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: "/lavoro-gestione-aziendale/", // <-- qui imposti la base path per GitHub Pages
+
   server: {
     host: "::",
     port: 8080,
