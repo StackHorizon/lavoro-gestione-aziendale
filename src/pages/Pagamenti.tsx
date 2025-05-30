@@ -44,7 +44,7 @@ const Pagamenti = () => {
 
   const fetchPagamenti = async(id: number) =>{
     try {
-      const res = await fetch(`https://api.stackhorizon.itsh/getPagamenti/${id}`, {
+      const res = await fetch(`https://coding.servehttp.comsh/getPagamenti/${id}`, {
         method: "GET",
         headers: {"Content-Type": "application/json"},
         credentials: "include",
@@ -96,7 +96,7 @@ const Pagamenti = () => {
 
     try {
       if (editingPagamento) {
-        const response = await fetch(`https://api.stackhorizon.itsh/updatePagamento/${editingPagamento.id}`, {
+        const response = await fetch(`https://coding.servehttp.comsh/updatePagamento/${editingPagamento.id}`, {
           method: "PATCH",
           headers: {"Content-Type": "application/json"},
           credentials: "include",
@@ -109,7 +109,7 @@ const Pagamenti = () => {
         }
         toast({title: data.message, variant: (response.ok ? "default" : "destructive")});
       } else {
-        const res = await fetch("https://api.stackhorizon.itsh/addPagamento", {
+        const res = await fetch("https://coding.servehttp.comsh/addPagamento", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           credentials: "include",
@@ -131,7 +131,7 @@ const Pagamenti = () => {
 
   const handleDeletePagamento = async(id: string) => {
     try {
-      const res = await fetch(`https://api.stackhorizon.itsh/deletePagamento/${id}`, {
+      const res = await fetch(`https://coding.servehttp.comsh/deletePagamento/${id}`, {
         method: "DELETE",
         headers: {"Content-Type": "application/json"},
         credentials: "include",

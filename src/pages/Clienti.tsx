@@ -56,7 +56,7 @@ const Clienti = () => {
     const fetchClienti = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch("https://api.stackhorizon.it/sh/getClienti", {
+            const res = await fetch("https://coding.servehttp.com/sh/getClienti", {
                 credentials: "include",
                 headers: {"Content-Type": "application/json"},
             });
@@ -102,7 +102,7 @@ const Clienti = () => {
         setIsLoading(true);
         if (editingCliente) {
             try {
-                const response = await fetch(`https://api.stackhorizon.it/sh/updateCliente/${editingCliente.id}`, {
+                const response = await fetch(`https://coding.servehttp.com/sh/updateCliente/${editingCliente.id}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
@@ -121,7 +121,7 @@ const Clienti = () => {
             }
         } else {
             try {
-                const res = await fetch("https://api.stackhorizon.it/sh/addCliente", {
+                const res = await fetch("https://coding.servehttp.com/sh/addCliente", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
@@ -147,7 +147,7 @@ const Clienti = () => {
     const handleDeleteCliente= async (id: string) => {
         setIsLoading(true);
         try{
-            const res = await fetch(`https://api.stackhorizon.it/sh/deleteCliente/${id}`, {
+            const res = await fetch(`https://coding.servehttp.com/sh/deleteCliente/${id}`, {
                 method: "DELETE",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
@@ -170,7 +170,7 @@ const Clienti = () => {
     const handleGeneratePDF = async (cliente: Cliente) => {
         setIsLoading(true);
         try {
-            const response = await fetch("https://api.stackhorizon.it/sh/generaPdf", {
+            const response = await fetch("https://coding.servehttp.com/sh/generaPdf", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

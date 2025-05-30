@@ -44,7 +44,7 @@ const Lavori = () => {
     const fetchLavori = async (id: number) => {
         setLoading(true);
         try {
-            const res = await fetch(`https://api.stackhorizon.it/sh/getLavori/${id}`, {
+            const res = await fetch(`https://coding.servehttp.com/sh/getLavori/${id}`, {
                 method: "GET",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
@@ -85,7 +85,7 @@ const Lavori = () => {
 
         if (editingLavoro) {
             try {
-                const response = await fetch(`https://api.stackhorizon.it/sh/updateLavoro/${editingLavoro.id}`, {
+                const response = await fetch(`https://coding.servehttp.com/sh/updateLavoro/${editingLavoro.id}`, {
                     method: "PATCH",
                     headers: {"Content-Type": "application/json"},
                     credentials: "include",
@@ -106,7 +106,7 @@ const Lavori = () => {
             }
         } else {
             try {
-                const res = await fetch("https://api.stackhorizon.it/sh/addLavoro", {
+                const res = await fetch("https://coding.servehttp.com/sh/addLavoro", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     credentials: "include",
@@ -131,7 +131,7 @@ const Lavori = () => {
     const handleDeleteLavoro = async (id: string) => {
         setLoading(true);
         try {
-            const res = await fetch(`https://api.stackhorizon.it/sh/deleteLavoro/${id}`, {
+            const res = await fetch(`https://coding.servehttp.com/sh/deleteLavoro/${id}`, {
                 method: "DELETE",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
