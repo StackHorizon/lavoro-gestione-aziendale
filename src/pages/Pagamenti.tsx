@@ -41,19 +41,17 @@ const Pagamenti = () => {
       return;
     }
 
-    if (!paramLavoroId) {
-      const lavoroIdFromStorage = sessionStorage.getItem("lavoroId");
-      if (lavoroIdFromStorage) {
-        navigate(`/pagamenti/${lavoroIdFromStorage}`, { replace: true });
-      } else {
-        toast({ title: "ID lavoro mancante", variant: "destructive" });
-      }
+    const lavoroIdFromStorage = sessionStorage.getItem('lavoroId');
+
+    if (!lavoroIdFromStorage) {
+      toast({ title: "ID lavoro mancante", variant: "destructive" });
+      navigate('/'); // o una pagina di fallback
       return;
     }
 
-    sessionStorage.setItem('lavoroId', paramLavoroId);
-    fetchPagamenti(parseInt(paramLavoroId));
-  }, [isAuthenticated, navigate, paramLavoroId]);
+    fetchPagamenti(parseInt(lavoroIdFromStorage));
+  }, [isAuthenticated, navigate]);
+
 
   const fetchPagamenti = async (id: number) => {
     try {
