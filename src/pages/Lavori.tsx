@@ -32,38 +32,14 @@ const Lavori = () => {
         stato: 'in corso' as Lavoro['stato']
     });
     const [loading, setLoading] = useState(false);
-    const [authChecked, setAuthChecked] = useState(false);
-
-    // Aspetta che isAuthenticated sia definito (non undefined)
-    useEffect(() => {
-        if (typeof isAuthenticated === 'boolean') {
-            setAuthChecked(true);
-        }
-    }, [isAuthenticated]);
 
     useEffect(() => {
-        if (!authChecked) return; // Aspetta check auth
-
         if (!isAuthenticated) {
             navigate('/');
             return;
         }
-
-        const clienteIdStr = sessionStorage.getItem("clienteId");
-        if (!clienteIdStr) {
-            navigate('/clienti');
-            return;
-        }
-
-        const clienteId = parseInt(clienteIdStr);
-        if (isNaN(clienteId) || clienteId <= 0) {
-            navigate('/clienti');
-            return;
-        }
-
-        fetchLavori(clienteId);
-
-    }, [authChecked, isAuthenticated, navigate]);
+        fetchLavori(parseInt(sessionStorage.getItem("clienteId") || '0'));
+    }, [isAuthenticated, navigate]);
 
     const fetchLavori = async (id: number) => {
         setLoading(true);
@@ -151,10 +127,11 @@ const Lavori = () => {
         setFormData({titolo: '', descrizione: '', stato: 'in corso'});
     };
 
+
     const handleDeleteLavoro = async (id: string) => {
         setLoading(true);
         try {
-            const res = await fetch(`https://coding.servehttp.com/sh/deleteLavoro/${id}`, {
+            const res = await fetch(`https://coding.servehttp.comxf/sh/deleteLavoro/${id}`, {
                 method: "DELETE",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
@@ -171,6 +148,7 @@ const Lavori = () => {
             setLoading(false);
         }
     };
+
 
     const handleLavoroClick = (lavoroId: string) => {
         sessionStorage.setItem("lavoroId", lavoroId);
@@ -207,23 +185,8 @@ const Lavori = () => {
         }
     };
 
-    if (!authChecked) {
-        // Puoi mettere qui uno spinner o null mentre aspetti
-        return (
-            <div className="flex justify-center items-center min-h-screen">
-                <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg"
-                     fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                            strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor"
-                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-            </div>
-        );
-    }
-
     if (!isAuthenticated) {
-        return null; // Redirection già fatta
+        return null;
     }
 
     return (
@@ -353,46 +316,43 @@ const Lavori = () => {
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            lavori.map(lavoro => (
+                                            lavori.map((lavoro) => (
                                                 <TableRow
                                                     key={lavoro.id}
-                                                    onClick={() => handleLavoroClick(lavoro.id)}
-                                                    className="cursor-pointer hover:bg-gray-100"
+                                                    className="hover:bg-gray-50 cursor-pointer"
+                                                    onClick={() => !loading && handleLavoroClick(lavoro.id)}
                                                 >
-                                                    <TableCell>{lavoro.titolo}</TableCell>
-                                                    <TableCell>{lavoro.descrizione}</TableCell>
+                                                    <TableCell className="font-medium">{lavoro.titolo}</TableCell>
+                                                    <TableCell
+                                                        className="max-w-xs truncate">{lavoro.descrizione}</TableCell>
                                                     <TableCell>
-                                                        <span
-                                                            className={`inline-block px-2 py-1 rounded text-xs font-semibold ${getStatoColor(lavoro.stato)}`}>
-                                                            {getStatoLabel(lavoro.stato)}
-                                                        </span>
+                              <span
+                                  className={`px-2 py-1 rounded-full text-xs font-medium ${getStatoColor(lavoro.stato)}`}>
+                                {getStatoLabel(lavoro.stato)}
+                              </span>
                                                     </TableCell>
                                                     <TableCell className="text-center">
-                                                        <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={e => {
-                                                                e.stopPropagation();
-                                                                handleEditLavoro(lavoro);
-                                                            }}
-                                                            disabled={loading}
-                                                            className="mr-2"
-                                                        >
-                                                            <Edit className="h-4 w-4"/>
-                                                        </Button>
-                                                        <Button
-                                                            size="sm"
-                                                            variant="destructive"
-                                                            onClick={e => {
-                                                                e.stopPropagation();
-                                                                if (window.confirm("Sei sicuro di voler eliminare questo lavoro?")) {
-                                                                    handleDeleteLavoro(lavoro.id);
-                                                                }
-                                                            }}
-                                                            disabled={loading}
-                                                        >
-                                                            <Trash2 className="h-4 w-4"/>
-                                                        </Button>
+                                                        <div className="flex justify-center gap-2"
+                                                             onClick={(e) => e.stopPropagation()}>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleEditLavoro(lavoro)}
+                                                                className="h-8 w-8 p-0"
+                                                                disabled={loading}
+                                                            >
+                                                                <Edit className="h-4 w-4"/>
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleDeleteLavoro(lavoro.id)}
+                                                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                                                disabled={loading}
+                                                            >
+                                                                <Trash2 className="h-4 w-4"/>
+                                                            </Button>
+                                                        </div>
                                                     </TableCell>
                                                 </TableRow>
                                             ))

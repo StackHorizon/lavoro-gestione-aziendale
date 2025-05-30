@@ -34,27 +34,13 @@ const Pagamenti = () => {
     importoPagato: '',
     causale: ''
   });
-
-  // Recupera il lavoroId dalla URL o sessionStorage
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
       return;
     }
-
-    let idToUse = paramLavoroId;
-    if (!idToUse) {
-      idToUse = sessionStorage.getItem('lavoroId') || '';
-    } else {
-      sessionStorage.setItem('lavoroId', idToUse);
-    }
-
-    if (idToUse) {
-      fetchPagamenti(parseInt(idToUse));
-    } else {
-      toast({ title: "ID lavoro mancante", variant: "destructive" });
-    }
-  }, [isAuthenticated, navigate, paramLavoroId]);
+    fetchPagamenti(parseInt(sessionStorage.getItem("lavoroId") || '0'));
+  }, [isAuthenticated, navigate]);
 
   const fetchPagamenti = async (id: number) => {
     try {
