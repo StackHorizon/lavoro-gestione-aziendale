@@ -274,7 +274,7 @@ const Pagamenti = () => {
                           <TableCell className={importoMancante > 0 ? 'text-red-600' : 'text-green-600'}>
                             {formatCurrency(importoMancante)}
                           </TableCell>
-                          <TableCell className="max-w-xs truncate">{pagamento.causale}</TableCell>
+                          <TableCell className="max-w-xs truncate">{pagamento.causale.length > 20 ? pagamento.causale.substring(0,15) + "..." : pagamento.causale}</TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
                               <Button
