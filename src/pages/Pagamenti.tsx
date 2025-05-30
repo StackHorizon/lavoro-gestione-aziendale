@@ -264,7 +264,6 @@ const Pagamenti = () => {
                 </TableHeader>
                 <TableBody>
                   {pagamenti.map((pagamento) => {
-                    console.log(pagamento);
                     const importoMancante = pagamento.importoDovuto - pagamento.importoPagato;
                     return (
                         <TableRow key={pagamento.id} className="hover:bg-gray-50">
