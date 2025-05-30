@@ -44,7 +44,7 @@ const Pagamenti = () => {
 
   const fetchPagamenti = async(id: number) =>{
     try {
-      const res = await fetch(`https://coding.servehttp.comsh/getPagamenti/${id}`, {
+      const res = await fetch(`https://coding.servehttp.com/sh/getPagamenti/${id}`, {
         method: "GET",
         headers: {"Content-Type": "application/json"},
         credentials: "include",
