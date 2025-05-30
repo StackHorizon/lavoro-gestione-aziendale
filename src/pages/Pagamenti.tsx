@@ -34,23 +34,25 @@ const Pagamenti = () => {
     causale: ''
   });
 
+  // Redirect a /pagamenti/:lavoroId se manca
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
       return;
     }
 
-    if (paramLavoroId) {
-      sessionStorage.setItem('lavoroId', paramLavoroId);
-      fetchPagamenti(parseInt(paramLavoroId));
-    } else {
-      const lavoroIdFromStorage = sessionStorage.getItem('lavoroId');
+    if (!paramLavoroId) {
+      const lavoroIdFromStorage = sessionStorage.getItem("lavoroId");
       if (lavoroIdFromStorage) {
         navigate(`/pagamenti/${lavoroIdFromStorage}`, { replace: true });
       } else {
         toast({ title: "ID lavoro mancante", variant: "destructive" });
       }
+      return;
     }
+
+    sessionStorage.setItem('lavoroId', paramLavoroId);
+    fetchPagamenti(parseInt(paramLavoroId));
   }, [isAuthenticated, navigate, paramLavoroId]);
 
   const fetchPagamenti = async (id: number) => {
@@ -68,9 +70,7 @@ const Pagamenti = () => {
     }
   };
 
-  const handleBack = () => {
-    navigate(-1);
-  };
+  const handleBack = () => navigate(-1);
 
   const handleAddPagamento = () => {
     setEditingPagamento(null);
@@ -96,7 +96,6 @@ const Pagamenti = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const lavoroIdStored = sessionStorage.getItem("lavoroId") || '';
     if (!lavoroIdStored) {
       toast({ title: "ID lavoro mancante", variant: "destructive" });
@@ -133,8 +132,8 @@ const Pagamenti = () => {
           body: JSON.stringify(pagamentoData),
         });
 
-        if (!res.ok) throw new Error("Errore nella fetch POST");
         const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
         await fetchPagamenti(parseInt(lavoroIdStored));
         toast({ title: data.message, variant: "default" });
       }
@@ -153,8 +152,8 @@ const Pagamenti = () => {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
-      if (!res.ok) throw new Error("Errore nella fetch DELETE");
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
       toast({ title: data.message, variant: "default" });
       const lavoroIdStored = sessionStorage.getItem("lavoroId") || '0';
       await fetchPagamenti(parseInt(lavoroIdStored));
@@ -163,16 +162,12 @@ const Pagamenti = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('it-IT', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(amount);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('it-IT');
-  };
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('it-IT');
 
   if (!isAuthenticated) return null;
 
@@ -284,15 +279,15 @@ const Pagamenti = () => {
                   {pagamenti.map((pagamento) => {
                     const importoMancante = pagamento.importoDovuto - pagamento.importoPagato;
                     return (
-                        <TableRow key={pagamento.id} className="hover:bg-gray-50">
+                        <TableRow key={pagamento.id}>
                           <TableCell>{formatDate(pagamento.dataModifica)}</TableCell>
-                          <TableCell className="font-medium">{formatCurrency(pagamento.importoDovuto)}</TableCell>
+                          <TableCell>{formatCurrency(pagamento.importoDovuto)}</TableCell>
                           <TableCell className="text-green-600">{formatCurrency(pagamento.importoPagato)}</TableCell>
                           <TableCell className={importoMancante > 0 ? 'text-red-600' : 'text-green-600'}>
                             {formatCurrency(importoMancante)}
                           </TableCell>
-                          <TableCell className="max-w-xs truncate" title={pagamento.causale}>
-                            {pagamento.causale.length > 20 ? pagamento.causale.substring(0, 17) + "..." : pagamento.causale}
+                          <TableCell className="truncate max-w-xs" title={pagamento.causale}>
+                            {pagamento.causale.length > 20 ? pagamento.causale.substring(0, 17) + '...' : pagamento.causale}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
@@ -301,7 +296,6 @@ const Pagamenti = () => {
                                   size="sm"
                                   onClick={() => handleEditPagamento(pagamento)}
                                   className="h-8 w-8 p-0"
-                                  aria-label="Modifica pagamento"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
@@ -309,12 +303,11 @@ const Pagamenti = () => {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
-                                    if (window.confirm("Sei sicuro di voler eliminare questo pagamento?")) {
+                                    if (window.confirm('Sei sicuro di voler eliminare questo pagamento?')) {
                                       handleDeletePagamento(pagamento.id);
                                     }
                                   }}
                                   className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                                  aria-label="Elimina pagamento"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
