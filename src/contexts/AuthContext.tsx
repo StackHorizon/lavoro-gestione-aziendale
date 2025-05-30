@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string): Promise<boolean> => {
     if(email !== '' && password !== ''){
-      const response = await fetch('http://localhost:3000/sh/login', {
+      const response = await fetch('https://https://api.stackhorizon.it/sh/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
