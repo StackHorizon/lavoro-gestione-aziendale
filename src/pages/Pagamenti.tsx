@@ -24,7 +24,7 @@ interface Pagamento {
 const Pagamenti = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const { lavoroId } = useParams();
+  const { lavoroId: paramLavoroId } = useParams();
   const [pagamenti, setPagamenti] = useState<Pagamento[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPagamento, setEditingPagamento] = useState<Pagamento | null>(null);
@@ -35,41 +35,41 @@ const Pagamenti = () => {
     causale: ''
   });
 
+  // Recupera il lavoroId dalla URL o sessionStorage
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
       return;
     }
-    let idToUse = lavoroId;
+
+    let idToUse = paramLavoroId;
     if (!idToUse) {
-      // Se non c'è nella URL, recuperalo da sessionStorage
       idToUse = sessionStorage.getItem('lavoroId') || '';
     } else {
-      // Se c'è, salvalo nello storage
       sessionStorage.setItem('lavoroId', idToUse);
     }
+
     if (idToUse) {
       fetchPagamenti(parseInt(idToUse));
     } else {
       toast({ title: "ID lavoro mancante", variant: "destructive" });
     }
-  }, [isAuthenticated, navigate, lavoroId]);
+  }, [isAuthenticated, navigate, paramLavoroId]);
 
-
-  const fetchPagamenti = async(id: number) =>{
+  const fetchPagamenti = async (id: number) => {
     try {
       const res = await fetch(`https://coding.servehttp.com/sh/getPagamenti/${id}`, {
         method: "GET",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       if (!res.ok) throw new Error("Errore nella fetch GET");
       const data = await res.json();
       setPagamenti(data.data);
     } catch (error) {
-      toast({title: "Errore durante il caricamento dei pagamenti", variant: "destructive"});
+      toast({ title: "Errore durante il caricamento dei pagamenti", variant: "destructive" });
     }
-  }
+  };
 
   const handleBack = () => {
     navigate(-1);
@@ -97,11 +97,18 @@ const Pagamenti = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async(e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const pagamentoData: Omit<Pagamento, 'id'> = {
-      lavoroId: lavoroId!,
+    // Usa il lavoroId sempre da sessionStorage per coerenza
+    const lavoroIdStored = sessionStorage.getItem("lavoroId") || '';
+    if (!lavoroIdStored) {
+      toast({ title: "ID lavoro mancante", variant: "destructive" });
+      return;
+    }
+
+    const pagamentoData = {
+      lavoroId: lavoroIdStored,
       dataModifica: formData.dataModifica,
       importoDovuto: parseFloat(formData.importoDovuto),
       importoPagato: parseFloat(formData.importoPagato),
@@ -112,50 +119,51 @@ const Pagamenti = () => {
       if (editingPagamento) {
         const response = await fetch(`https://coding.servehttp.com/sh/updatePagamento/${editingPagamento.id}`, {
           method: "PATCH",
-          headers: {"Content-Type": "application/json"},
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify(pagamentoData), // CORRETTO
+          body: JSON.stringify(pagamentoData),
         });
 
         const data = await response.json();
         if (response.ok) {
-          await fetchPagamenti(parseInt(sessionStorage.getItem("lavoroId") || '0'));
+          await fetchPagamenti(parseInt(lavoroIdStored));
         }
-        toast({title: data.message, variant: (response.ok ? "default" : "destructive")});
+        toast({ title: data.message, variant: response.ok ? "default" : "destructive" });
       } else {
         const res = await fetch("https://coding.servehttp.com/sh/addPagamento", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({...pagamentoData, lavoroId: sessionStorage.getItem("lavoroId")}),
+          body: JSON.stringify(pagamentoData),
         });
 
         if (!res.ok) throw new Error("Errore nella fetch POST");
         const data = await res.json();
-        await fetchPagamenti(parseInt(sessionStorage.getItem("lavoroId") || '0'));
-        toast({title: data.message, variant: "default"});
+        await fetchPagamenti(parseInt(lavoroIdStored));
+        toast({ title: data.message, variant: "default" });
       }
     } catch (error) {
-      toast({title: "Errore durante la richiesta", variant: "destructive"});
+      toast({ title: "Errore durante la richiesta", variant: "destructive" });
     }
 
     setIsDialogOpen(false);
     setFormData({ dataModifica: '', importoDovuto: '', importoPagato: '', causale: '' });
   };
 
-  const handleDeletePagamento = async(id: string) => {
+  const handleDeletePagamento = async (id: string) => {
     try {
       const res = await fetch(`https://coding.servehttp.com/sh/deletePagamento/${id}`, {
         method: "DELETE",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       if (!res.ok) throw new Error("Errore nella fetch DELETE");
       const data = await res.json();
-      toast({title: data.message, variant: "default"});
-      await fetchPagamenti(parseInt(sessionStorage.getItem("lavoroId") || '0'));
+      toast({ title: data.message, variant: "default" });
+      const lavoroIdStored = sessionStorage.getItem("lavoroId") || '0';
+      await fetchPagamenti(parseInt(lavoroIdStored));
     } catch (error) {
-      toast({title: "Errore durante la richiesta", variant: "destructive"});
+      toast({ title: "Errore durante la richiesta", variant: "destructive" });
     }
   };
 
@@ -213,7 +221,7 @@ const Pagamenti = () => {
                             id="dataModifica"
                             type="date"
                             value={formData.dataModifica}
-                            onChange={(e) => setFormData({...formData, dataModifica: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, dataModifica: e.target.value })}
                             required
                         />
                       </div>
@@ -225,7 +233,7 @@ const Pagamenti = () => {
                               type="number"
                               step="0.01"
                               value={formData.importoDovuto}
-                              onChange={(e) => setFormData({...formData, importoDovuto: e.target.value})}
+                              onChange={(e) => setFormData({ ...formData, importoDovuto: e.target.value })}
                               required
                           />
                         </div>
@@ -236,7 +244,7 @@ const Pagamenti = () => {
                               type="number"
                               step="0.01"
                               value={formData.importoPagato}
-                              onChange={(e) => setFormData({...formData, importoPagato: e.target.value})}
+                              onChange={(e) => setFormData({ ...formData, importoPagato: e.target.value })}
                               required
                           />
                         </div>
@@ -246,7 +254,7 @@ const Pagamenti = () => {
                         <Textarea
                             id="causale"
                             value={formData.causale}
-                            onChange={(e) => setFormData({...formData, causale: e.target.value})}
+                            onChange={(e) => setFormData({ ...formData, causale: e.target.value })}
                             required
                             rows={3}
                         />
@@ -270,7 +278,7 @@ const Pagamenti = () => {
                   <TableRow>
                     <TableHead>Data Modifica</TableHead>
                     <TableHead>Importo Dovuto</TableHead>
-                    <TableHead>Importo Dato</TableHead>
+                    <TableHead>Importo Pagato</TableHead>
                     <TableHead>Importo Mancante</TableHead>
                     <TableHead>Causale</TableHead>
                     <TableHead className="text-center">Azioni</TableHead>
@@ -287,7 +295,9 @@ const Pagamenti = () => {
                           <TableCell className={importoMancante > 0 ? 'text-red-600' : 'text-green-600'}>
                             {formatCurrency(importoMancante)}
                           </TableCell>
-                          <TableCell className="max-w-xs truncate">{pagamento.causale.length > 20 ? pagamento.causale.substring(0,15) + "..." : pagamento.causale}</TableCell>
+                          <TableCell className="max-w-xs truncate" title={pagamento.causale}>
+                            {pagamento.causale.length > 20 ? pagamento.causale.substring(0, 17) + "..." : pagamento.causale}
+                          </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
                               <Button
@@ -295,14 +305,20 @@ const Pagamenti = () => {
                                   size="sm"
                                   onClick={() => handleEditPagamento(pagamento)}
                                   className="h-8 w-8 p-0"
+                                  aria-label="Modifica pagamento"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
                               <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => handleDeletePagamento(pagamento.id)}
+                                  onClick={() => {
+                                    if (window.confirm("Sei sicuro di voler eliminare questo pagamento?")) {
+                                      handleDeletePagamento(pagamento.id);
+                                    }
+                                  }}
                                   className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                                  aria-label="Elimina pagamento"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
