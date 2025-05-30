@@ -322,9 +322,9 @@ const Lavori = () => {
                                                     className="hover:bg-gray-50 cursor-pointer"
                                                     onClick={() => !loading && handleLavoroClick(lavoro.id)}
                                                 >
-                                                    <TableCell className="font-medium">{lavoro.titolo}</TableCell>
+                                                    <TableCell className="font-medium">{lavoro.titolo.length < 20 ? lavoro.titolo : lavoro.titolo.substring(0,15) + "..."}</TableCell>
                                                     <TableCell
-                                                        className="max-w-xs truncate">{lavoro.descrizione}</TableCell>
+                                                        className="max-w-xs truncate">{lavoro.descrizione.length < 20 ? lavoro.descrizione : lavoro.descrizione.substring(0,15) + "..."}</TableCell>
                                                     <TableCell>
                               <span
                                   className={`px-2 py-1 rounded-full text-xs font-medium ${getStatoColor(lavoro.stato)}`}>
