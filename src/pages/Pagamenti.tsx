@@ -96,7 +96,7 @@ const Pagamenti = () => {
 
     try {
       if (editingPagamento) {
-        const response = await fetch(`https://coding.servehttp.comsh/updatePagamento/${editingPagamento.id}`, {
+        const response = await fetch(`https://coding.servehttp.com/sh/updatePagamento/${editingPagamento.id}`, {
           method: "PATCH",
           headers: {"Content-Type": "application/json"},
           credentials: "include",
@@ -109,7 +109,7 @@ const Pagamenti = () => {
         }
         toast({title: data.message, variant: (response.ok ? "default" : "destructive")});
       } else {
-        const res = await fetch("https://coding.servehttp.comsh/addPagamento", {
+        const res = await fetch("https://coding.servehttp.com/sh/addPagamento", {
           method: "POST",
           headers: {"Content-Type": "application/json"},
           credentials: "include",
@@ -131,7 +131,7 @@ const Pagamenti = () => {
 
   const handleDeletePagamento = async(id: string) => {
     try {
-      const res = await fetch(`https://coding.servehttp.comsh/deletePagamento/${id}`, {
+      const res = await fetch(`https://coding.servehttp.com/sh/deletePagamento/${id}`, {
         method: "DELETE",
         headers: {"Content-Type": "application/json"},
         credentials: "include",
