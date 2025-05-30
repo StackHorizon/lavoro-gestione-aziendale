@@ -38,9 +38,23 @@ const Pagamenti = () => {
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
+      return;
     }
-    fetchPagamenti(parseInt(sessionStorage.getItem("lavoroId") || '0'));
-  }, [isAuthenticated, navigate]);
+    let idToUse = lavoroId;
+    if (!idToUse) {
+      // Se non c'è nella URL, recuperalo da sessionStorage
+      idToUse = sessionStorage.getItem('lavoroId') || '';
+    } else {
+      // Se c'è, salvalo nello storage
+      sessionStorage.setItem('lavoroId', idToUse);
+    }
+    if (idToUse) {
+      fetchPagamenti(parseInt(idToUse));
+    } else {
+      toast({ title: "ID lavoro mancante", variant: "destructive" });
+    }
+  }, [isAuthenticated, navigate, lavoroId]);
+
 
   const fetchPagamenti = async(id: number) =>{
     try {
