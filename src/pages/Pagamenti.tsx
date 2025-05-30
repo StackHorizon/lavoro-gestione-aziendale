@@ -1,4 +1,3 @@
-// Pagamenti.tsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -35,24 +34,22 @@ const Pagamenti = () => {
     causale: ''
   });
 
-  // Recupera il lavoroId dalla URL o sessionStorage
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/');
       return;
     }
 
-    let idToUse = paramLavoroId;
-    if (!idToUse) {
-      idToUse = sessionStorage.getItem('lavoroId') || '';
+    if (paramLavoroId) {
+      sessionStorage.setItem('lavoroId', paramLavoroId);
+      fetchPagamenti(parseInt(paramLavoroId));
     } else {
-      sessionStorage.setItem('lavoroId', idToUse);
-    }
-
-    if (idToUse) {
-      fetchPagamenti(parseInt(idToUse));
-    } else {
-      toast({ title: "ID lavoro mancante", variant: "destructive" });
+      const lavoroIdFromStorage = sessionStorage.getItem('lavoroId');
+      if (lavoroIdFromStorage) {
+        navigate(`/pagamenti/${lavoroIdFromStorage}`, { replace: true });
+      } else {
+        toast({ title: "ID lavoro mancante", variant: "destructive" });
+      }
     }
   }, [isAuthenticated, navigate, paramLavoroId]);
 
@@ -100,7 +97,6 @@ const Pagamenti = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Usa il lavoroId sempre da sessionStorage per coerenza
     const lavoroIdStored = sessionStorage.getItem("lavoroId") || '';
     if (!lavoroIdStored) {
       toast({ title: "ID lavoro mancante", variant: "destructive" });
