@@ -131,7 +131,7 @@ const Lavori = () => {
     const handleDeleteLavoro = async (id: string) => {
         setLoading(true);
         try {
-            const res = await fetch(`https://coding.servehttp.com/sh/deleteLavoro/${id}`, {
+            const res = await fetch(`https://coding.servehttp.comxf/sh/deleteLavoro/${id}`, {
                 method: "DELETE",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
