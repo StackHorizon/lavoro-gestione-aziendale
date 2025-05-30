@@ -98,11 +98,6 @@ const Login = () => {
             >
               {isLoading ? 'Accesso in corso...' : 'Accedi'}
             </Button>
-            
-            <div className="text-center text-sm text-gray-500 mt-4">
-              <p>Credenziali demo:</p>
-              <p className="font-mono">admin@azienda.it / admin123</p>
-            </div>
           </form>
         </CardContent>
       </Card>
