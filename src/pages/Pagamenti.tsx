@@ -77,35 +77,85 @@ const Pagamenti = () => {
         fetchPagamenti(parseInt(sessionStorage.getItem("lavoroId") || '0'));
     }, [isAuthenticated, navigate]);
 
-    // Animazioni all'avvio, solo la prima volta
+    // Aggiunta stili CSS per il modal su mobile
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @media (max-width: 640px) {
+              .modal-mobile-fix {
+                position: fixed !important;
+                inset: auto !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                padding: 0 !important;
+                max-width: calc(100% - 2rem) !important;
+                width: calc(100% - 2rem) !important;
+                max-height: 80vh !important;
+                border-radius: 1.2rem !important;
+                margin: 0 !important;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+              }
+
+              .modal-mobile-content {
+                padding: 1.25rem !important;
+              }
+
+              .modal-mobile-buttons {
+                padding-top: 1rem !important;
+                margin-top: 0.5rem !important;
+              }
+            }
+
+            @supports (padding: max(0px)) {
+              .modal-mobile-fix {
+                padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+              }
+            }
+        `;
+        document.head.appendChild(style);
+
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
+    // Animazioni all'avvio, ottimizzate
     useEffect(() => {
         if (!hasAnimated && headerRef.current && tableRef.current) {
+            // Impostazione per accelerazione hardware
+            gsap.config({force3D: true});
+
             // Inizializza gli elementi con opacità 0
-            gsap.set(headerRef.current, {y: -20, opacity: 0});
-            gsap.set(tableRef.current, {y: 30, opacity: 0, scale: 0.98});
+            gsap.set(headerRef.current, {y: -20, opacity: 0, willChange: "transform, opacity"});
+            gsap.set(tableRef.current, {y: 30, opacity: 0, scale: 0.98, willChange: "transform, opacity"});
 
             // Timeline per animazioni sequenziali
             const tl = gsap.timeline({
                 onComplete: () => {
                     setHasAnimated(true);
+                    // Rimuovi willChange dopo le animazioni per migliorare le prestazioni
+                    gsap.set([headerRef.current, tableRef.current], {willChange: "auto"});
                 }
             });
 
-            // Anima l'header
+            // Anima l'header con durata ridotta
             tl.to(headerRef.current, {
                 y: 0,
                 opacity: 1,
-                duration: 0.5,
-                ease: "power2.out"
+                duration: 0.3, // Ridotta da 0.5
+                ease: "power2.out",
+                force3D: true
             });
 
-            // Anima la tabella
+            // Anima la tabella con durata ridotta
             tl.to(tableRef.current, {
                 y: 0,
                 opacity: 1,
                 scale: 1,
-                duration: 0.5,
-                ease: "back.out(1.2)"
+                duration: 0.3, // Ridotta da 0.5
+                ease: "back.out(1.2)",
+                force3D: true
             }, "-=0.2");
         }
 
@@ -114,24 +164,24 @@ const Pagamenti = () => {
         };
     }, [hasAnimated, pagamenti]);
 
-    // Animazione per il modal quando viene aperto
+    // Animazione per il modal quando viene aperto (ottimizzata)
     useEffect(() => {
         if (isDialogOpen && modalContentRef.current) {
             gsap.fromTo(
                 modalContentRef.current,
-                {y: 20, opacity: 0, scale: 0.98},
-                {y: 0, opacity: 1, scale: 1, duration: 0.3, ease: "power2.out"}
+                {y: 15, opacity: 0, scale: 0.98},
+                {y: 0, opacity: 1, scale: 1, duration: 0.25, ease: "power2.out", force3D: true}
             );
         }
     }, [isDialogOpen]);
 
-    // Animazione per il modal di conferma eliminazione
+    // Animazione per il modal di conferma eliminazione (ottimizzata)
     useEffect(() => {
         if (isDeleteDialogOpen && deleteDialogRef.current) {
             gsap.fromTo(
                 deleteDialogRef.current,
-                {scale: 0.9, opacity: 0},
-                {scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.5)"}
+                {scale: 0.95, opacity: 0},
+                {scale: 1, opacity: 1, duration: 0.25, ease: "back.out(1.5)", force3D: true}
             );
         }
     }, [isDeleteDialogOpen]);
@@ -155,7 +205,7 @@ const Pagamenti = () => {
     };
 
     const handleBack = () => {
-        // Animazione di uscita
+        // Animazione di uscita ottimizzata
         if (headerRef.current && tableRef.current) {
             const tl = gsap.timeline({
                 onComplete: () => {
@@ -167,15 +217,17 @@ const Pagamenti = () => {
                 y: 30,
                 opacity: 0,
                 scale: 0.95,
-                duration: 0.3,
-                ease: "power2.in"
+                duration: 0.25, // Ridotta da 0.3
+                ease: "power2.in",
+                force3D: true
             });
 
             tl.to(headerRef.current, {
                 y: -20,
                 opacity: 0,
-                duration: 0.3,
-                ease: "power2.in"
+                duration: 0.25, // Ridotta da 0.3
+                ease: "power2.in",
+                force3D: true
             }, "-=0.2");
         } else {
             navigate(-1);
@@ -192,7 +244,7 @@ const Pagamenti = () => {
         });
         setIsDialogOpen(true);
 
-        // Animazione pulsante
+        // Animazione pulsante ottimizzata
         const button = document.querySelector('button[aria-haspopup="dialog"]');
         if (button) {
             gsap.fromTo(
@@ -200,10 +252,11 @@ const Pagamenti = () => {
                 {scale: 1},
                 {
                     scale: 0.95,
-                    duration: 0.1,
+                    duration: 0.08, // Ridotta da 0.1
                     yoyo: true,
                     repeat: 1,
-                    ease: "power1.out"
+                    ease: "power1.out",
+                    force3D: true
                 }
             );
         }
@@ -238,13 +291,14 @@ const Pagamenti = () => {
             if (!res.ok) throw new Error("Errore nella fetch DELETE");
             const data = await res.json();
 
-            // Animazione per la riga da eliminare
+            // Animazione per la riga da eliminare (ottimizzata)
             const rowToRemove = document.querySelector(`tr[data-id="${pagamentoToDelete}"]`);
             if (rowToRemove) {
                 gsap.to(rowToRemove, {
                     opacity: 0,
                     height: 0,
-                    duration: 0.3,
+                    duration: 0.25, // Ridotta da 0.3
+                    force3D: true,
                     onComplete: () => {
                         const lavoroIdStored = sessionStorage.getItem("lavoroId") || '0';
                         fetchPagamenti(parseInt(lavoroIdStored));
@@ -272,15 +326,16 @@ const Pagamenti = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Animazione del pulsante al click
+        // Animazione del pulsante al click (ottimizzata)
         if (formRef.current) {
             const button = formRef.current.querySelector('button[type="submit"]');
             if (button) {
                 gsap.to(button, {
                     scale: 0.95,
-                    duration: 0.1,
+                    duration: 0.08, // Ridotta da 0.1
                     yoyo: true,
-                    repeat: 1
+                    repeat: 1,
+                    force3D: true
                 });
             }
         }
@@ -442,7 +497,7 @@ const Pagamenti = () => {
                         </DialogTrigger>
 
                         <DialogContent
-                            className="p-0 overflow-hidden border-0 shadow-2xl sm:max-w-md"
+                            className="p-0 overflow-hidden border-0 shadow-2xl sm:max-w-md modal-mobile-fix"
                         >
                             <div
                                 ref={modalContentRef}
@@ -462,7 +517,7 @@ const Pagamenti = () => {
                                 <div
                                     className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10 rounded-xl blur-md opacity-70"></div>
 
-                                <div className="relative z-10 p-6">
+                                <div className="relative z-10 p-6 modal-mobile-content">
                                     <DialogHeader className="pb-2">
                                         <div className="flex items-center gap-3 mb-1">
                                             <div
@@ -563,7 +618,7 @@ const Pagamenti = () => {
                                             />
                                         </div>
 
-                                        <div className="flex justify-end gap-3 pt-2">
+                                        <div className="flex justify-end gap-3 pt-2 modal-mobile-buttons">
                                             <Button
                                                 type="button"
                                                 variant="outline"
@@ -607,7 +662,7 @@ const Pagamenti = () => {
 
                 {/* Dialog di conferma eliminazione */}
                 <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent className="p-0 overflow-hidden border-0 shadow-xl sm:max-w-sm">
+                    <DialogContent className="p-0 overflow-hidden border-0 shadow-xl sm:max-w-sm modal-mobile-fix">
                         <div
                             ref={deleteDialogRef}
                             className="bg-white/90 backdrop-blur-xl relative"
@@ -626,7 +681,7 @@ const Pagamenti = () => {
                             <div
                                 className="absolute -inset-0.5 bg-gradient-to-r from-red-500/10 to-orange-500/10 rounded-xl blur-md opacity-70"></div>
 
-                            <div className="relative z-10 p-6">
+                            <div className="relative z-10 p-6 modal-mobile-content">
                                 <DialogHeader className="pb-2">
                                     <div className="flex items-center gap-3 mb-1">
                                         <div
@@ -643,7 +698,7 @@ const Pagamenti = () => {
                                     </DialogDescription>
                                 </DialogHeader>
 
-                                <DialogFooter className="flex justify-end gap-3 pt-6">
+                                <DialogFooter className="flex justify-end gap-3 pt-6 modal-mobile-buttons">
                                     <Button
                                         type="button"
                                         variant="outline"

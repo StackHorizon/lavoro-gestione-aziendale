@@ -85,46 +85,111 @@ const Clienti = () => {
         fetchClienti();
     }, [isAuthenticated, navigate]);
 
+    // Aggiunta stili CSS per il modal su mobile
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @media (max-width: 640px) {
+              .modal-mobile-fix {
+                position: fixed !important;
+                inset: auto !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                padding: 0 !important;
+                max-width: calc(100% - 2rem) !important;
+                width: calc(100% - 2rem) !important;
+                max-height: 80vh !important;
+                border-radius: 1.2rem !important;
+                margin: 0 !important;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+              }
+
+              .modal-mobile-content {
+                padding: 1.25rem !important;
+              }
+
+              .modal-mobile-buttons {
+                padding-top: 1rem !important;
+                margin-top: 0.5rem !important;
+              }
+            }
+
+            @supports (padding: max(0px)) {
+              .modal-mobile-fix {
+                padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+              }
+            }
+        `;
+        document.head.appendChild(style);
+
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
+
+    // Configurazione di GSAP per prestazioni ottimizzate
+    useEffect(() => {
+        // Ottimizzazione delle prestazioni per le animazioni
+        gsap.config({
+            force3D: true,
+            autoSleep: 60,
+            nullTargetWarn: false
+        });
+
+        // Cleanup al unmount
+        return () => {
+            gsap.killTweensOf("*");
+        };
+    }, []);
+
     // Animazioni all'avvio, solo la prima volta
     useEffect(() => {
         if (!hasAnimated && headerRef.current && cardGridRef.current && searchBarRef.current) {
-            // Inizializza gli elementi con opacità 0
-            gsap.set(headerRef.current, {y: -20, opacity: 0});
-            gsap.set(searchBarRef.current, {y: 20, opacity: 0});
-            gsap.set(cardGridRef.current.children, {y: 30, opacity: 0, scale: 0.95});
-
-            // Timeline per animazioni sequenziali
-            const tl = gsap.timeline({
+            // Timeline principale per le animazioni di entrata
+            const masterTl = gsap.timeline({
                 onComplete: () => {
                     setHasAnimated(true);
+                    // Rimuovi willChange dopo le animazioni per migliorare le prestazioni
+                    gsap.set([headerRef.current, searchBarRef.current], {clearProps: "willChange"});
                 }
             });
 
-            // Anima l'header
-            tl.to(headerRef.current, {
-                y: 0,
-                opacity: 1,
-                duration: 0.5,
-                ease: "power2.out"
-            });
+            // Animazione avanzata per l'header
+            masterTl.fromTo(headerRef.current,
+                {y: -30, opacity: 0, willChange: "transform, opacity"},
+                {y: 0, opacity: 1, duration: 0.6, ease: "power3.out"}
+            );
 
-            // Anima la barra di ricerca
-            tl.to(searchBarRef.current, {
-                y: 0,
-                opacity: 1,
-                duration: 0.5,
-                ease: "power2.out"
-            }, "-=0.2");
+            // Animazione per la barra di ricerca con leggero rimbalzo
+            masterTl.fromTo(searchBarRef.current,
+                {y: 20, opacity: 0, willChange: "transform, opacity"},
+                {y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.2)"},
+                "-=0.3"
+            );
 
-            // Anima le card dei clienti con stagger
-            tl.to(cardGridRef.current.children, {
-                y: 0,
-                opacity: 1,
-                scale: 1,
-                duration: 0.4,
-                stagger: 0.05,
-                ease: "back.out(1.2)"
-            }, "-=0.2");
+            // Animazione a cascata per le card
+            if (cardGridRef.current.children.length > 0) {
+                // Staggered animation con effetto elastico raffinato
+                masterTl.fromTo(cardGridRef.current.children,
+                    {y: 40, opacity: 0, scale: 0.92, willChange: "transform, opacity"},
+                    {
+                        y: 0,
+                        opacity: 1,
+                        scale: 1,
+                        duration: 0.5,
+                        stagger: 0.04,
+                        ease: "back.out(1.4)",
+                        onComplete: () => {
+                            Array.from(cardGridRef.current?.children || []).forEach(child => {
+                                child.setAttribute("data-animated", "true");
+                                gsap.set(child, {clearProps: "willChange"});
+                            });
+                        }
+                    },
+                    "-=0.2"
+                );
+            }
         }
 
         return () => {
@@ -132,52 +197,97 @@ const Clienti = () => {
         };
     }, [hasAnimated, clienti]);
 
+    // Gestione fluida delle animazioni quando cambiano i clienti filtrati
+    useEffect(() => {
+        if (hasAnimated && cardGridRef.current && cardGridRef.current.children.length > 0) {
+            const cards = Array.from(cardGridRef.current.children);
+            const newCards = cards.filter(card => card.getAttribute("data-animated") !== "true");
+            const existingCards = cards.filter(card => card.getAttribute("data-animated") === "true");
+
+            // Anima solo le nuove card
+            if (newCards.length > 0) {
+                gsap.fromTo(
+                    newCards,
+                    {y: 30, opacity: 0, scale: 0.95, willChange: "transform, opacity"},
+                    {
+                        y: 0,
+                        opacity: 1,
+                        scale: 1,
+                        duration: 0.4,
+                        stagger: 0.03,
+                        ease: "back.out(1.4)",
+                        onComplete: () => {
+                            newCards.forEach(card => {
+                                card.setAttribute("data-animated", "true");
+                                gsap.set(card, {clearProps: "willChange"});
+                            });
+                        }
+                    }
+                );
+            }
+
+            // Applica un effetto sottile alle card esistenti quando si filtra
+            if (existingCards.length > 0 && searchTerm !== "") {
+                gsap.fromTo(
+                    existingCards,
+                    {scale: 1, y: 0, willChange: "transform"},
+                    {
+                        scale: 1.02,
+                        y: -3,
+                        duration: 0.2,
+                        stagger: 0.02,
+                        ease: "power1.out",
+                        yoyo: true,
+                        repeat: 1,
+                        onComplete: () => {
+                            gsap.set(existingCards, {clearProps: "willChange"});
+                        }
+                    }
+                );
+            }
+        }
+    }, [filteredClienti, hasAnimated, searchTerm]);
+
     // Animazione per il modal quando viene aperto
     useEffect(() => {
         if (isDialogOpen && modalContentRef.current) {
             gsap.fromTo(
                 modalContentRef.current,
-                {y: 20, opacity: 0, scale: 0.98},
-                {y: 0, opacity: 1, scale: 1, duration: 0.3, ease: "power2.out"}
-            );
-        }
-    }, [isDialogOpen]);
-
-    // Animazione per nuove card quando cambiano i clienti filtrati
-    useEffect(() => {
-        if (hasAnimated && cardGridRef.current && cardGridRef.current.children.length > 0) {
-            // Anima solo le nuove card, non tutte
-            gsap.fromTo(
-                cardGridRef.current.children,
                 {
-                    opacity: (i, el) => el.getAttribute("data-animated") === "true" ? 1 : 0,
-                    y: (i, el) => el.getAttribute("data-animated") === "true" ? 0 : 20,
-                    scale: (i, el) => el.getAttribute("data-animated") === "true" ? 1 : 0.97,
+                    y: 20,
+                    opacity: 0,
+                    scale: 0.96,
+                    willChange: "transform, opacity"
                 },
                 {
-                    opacity: 1,
                     y: 0,
+                    opacity: 1,
                     scale: 1,
-                    duration: 0.3,
-                    stagger: 0.03,
-                    ease: "power1.out",
-                    onComplete: () => {
-                        Array.from(cardGridRef.current!.children).forEach(child => {
-                            child.setAttribute("data-animated", "true");
-                        });
-                    }
+                    duration: 0.4,
+                    ease: "back.out(1.7)",
+                    clearProps: "willChange"
                 }
             );
         }
-    }, [filteredClienti, hasAnimated]);
+    }, [isDialogOpen]);
 
     // Animazione per il modal di conferma eliminazione
     useEffect(() => {
         if (isDeleteDialogOpen && deleteDialogRef.current) {
             gsap.fromTo(
                 deleteDialogRef.current,
-                {scale: 0.9, opacity: 0},
-                {scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.5)"}
+                {
+                    scale: 0.9,
+                    opacity: 0,
+                    willChange: "transform, opacity"
+                },
+                {
+                    scale: 1,
+                    opacity: 1,
+                    duration: 0.4,
+                    ease: "elastic.out(0.6, 0.5)",
+                    clearProps: "willChange"
+                }
             );
         }
     }, [isDeleteDialogOpen]);
@@ -206,8 +316,8 @@ const Clienti = () => {
     };
 
     const handleLogout = () => {
-        // Animazione di uscita
-        if (headerRef.current && cardGridRef.current) {
+        // Animazione migliorata di uscita
+        if (headerRef.current && cardGridRef.current && searchBarRef.current) {
             const tl = gsap.timeline({
                 onComplete: () => {
                     logout();
@@ -215,20 +325,26 @@ const Clienti = () => {
                 }
             });
 
+            // Fade out delle card con stagger e movimento verso il basso
             tl.to(cardGridRef.current.children, {
-                y: 30,
+                y: 20,
                 opacity: 0,
                 scale: 0.95,
                 stagger: 0.03,
-                duration: 0.3,
-                ease: "power2.in"
+                duration: 0.4,
+                ease: "power2.in",
+                willChange: "transform, opacity",
+                clearProps: "willChange"
             });
 
-            tl.to(headerRef.current, {
-                y: -20,
+            // Fade out contemporaneo di header e barra di ricerca
+            tl.to([headerRef.current, searchBarRef.current], {
+                y: -10,
                 opacity: 0,
                 duration: 0.3,
-                ease: "power2.in"
+                ease: "power1.in",
+                willChange: "transform, opacity",
+                clearProps: "willChange"
             }, "-=0.2");
         } else {
             logout();
@@ -241,7 +357,7 @@ const Clienti = () => {
         setFormData({nome: "", cognome: "", email: "", cellulare: ""});
         setIsDialogOpen(true);
 
-        // Animazione pulsante
+        // Animazione pulsante migliorata
         const button = document.querySelector('button[aria-haspopup="dialog"]');
         if (button) {
             gsap.fromTo(
@@ -249,10 +365,10 @@ const Clienti = () => {
                 {scale: 1},
                 {
                     scale: 0.95,
-                    duration: 0.1,
+                    duration: 0.15,
                     yoyo: true,
                     repeat: 1,
-                    ease: "power1.out"
+                    ease: "power2.inOut"
                 }
             );
         }
@@ -273,16 +389,21 @@ const Clienti = () => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Animazione del pulsante al click
+        // Animazione migliorata del pulsante al click
         if (formRef.current) {
             const button = formRef.current.querySelector('button[type="submit"]');
             if (button) {
-                gsap.to(button, {
-                    scale: 0.95,
-                    duration: 0.1,
-                    yoyo: true,
-                    repeat: 1
-                });
+                gsap.timeline()
+                    .to(button, {
+                        scale: 0.95,
+                        duration: 0.1,
+                        ease: "power1.inOut"
+                    })
+                    .to(button, {
+                        scale: 1,
+                        duration: 0.2,
+                        ease: "elastic.out(1.2, 0.5)"
+                    });
             }
         }
 
@@ -348,9 +469,25 @@ const Clienti = () => {
             }
         }
 
-        setIsDialogOpen(false);
-        setFormData({nome: "", cognome: "", email: "", cellulare: ""});
-        setEditingCliente(null);
+        // Chiudi il dialog con animazione
+        if (modalContentRef.current) {
+            gsap.to(modalContentRef.current, {
+                y: 10,
+                opacity: 0,
+                scale: 0.95,
+                duration: 0.2,
+                ease: "power1.in",
+                onComplete: () => {
+                    setIsDialogOpen(false);
+                    setFormData({nome: "", cognome: "", email: "", cellulare: ""});
+                    setEditingCliente(null);
+                }
+            });
+        } else {
+            setIsDialogOpen(false);
+            setFormData({nome: "", cognome: "", email: "", cellulare: ""});
+            setEditingCliente(null);
+        }
     };
 
     const confirmDeleteCliente = (id: string) => {
@@ -371,27 +508,33 @@ const Clienti = () => {
 
             const data = await response.json();
             if (response.ok) {
-                // Animazione di eliminazione
+                // Animazione migliorata di eliminazione
                 const cardToRemove = Array.from(cardGridRef.current?.children || []).find(
                     (card) => card.getAttribute("data-id") === clientToDelete
                 );
 
                 if (cardToRemove) {
                     gsap.to(cardToRemove, {
-                        opacity: 0,
                         y: -20,
+                        opacity: 0,
                         scale: 0.9,
-                        duration: 0.3,
+                        height: 0,
+                        margin: 0,
+                        paddingTop: 0,
+                        paddingBottom: 0,
+                        duration: 0.4,
+                        ease: "power3.inOut",
                         onComplete: () => {
-                            fetchClienti();
+                            // Chiudi il dialog di conferma solo dopo che l'animazione è completa
                             setIsDeleteDialogOpen(false);
                             setClientToDelete(null);
+                            fetchClienti();
                         }
                     });
                 } else {
-                    await fetchClienti();
                     setIsDeleteDialogOpen(false);
                     setClientToDelete(null);
+                    fetchClienti();
                 }
 
                 toast({
@@ -421,16 +564,29 @@ const Clienti = () => {
     const handleClienteClick = (clienteId: string) => {
         sessionStorage.setItem("clienteId", clienteId);
 
-        // Animazione prima di navigare
-        if (cardGridRef.current) {
-            gsap.to(cardGridRef.current.children, {
-                y: -20,
-                opacity: 0,
-                stagger: 0.03,
-                duration: 0.3,
-                ease: "power2.in",
+        // Animazione migliorata prima di navigare
+        if (cardGridRef.current && headerRef.current && searchBarRef.current) {
+            const tl = gsap.timeline({
                 onComplete: () => navigate("/lavori")
             });
+
+            // Applica l'animazione a tutte le card
+            tl.to(cardGridRef.current.children, {
+                y: -30,
+                opacity: 0,
+                scale: 0.95,
+                stagger: 0.03,
+                duration: 0.4,
+                ease: "power2.in"
+            });
+
+            // Sfuma anche header e barra di ricerca
+            tl.to([headerRef.current, searchBarRef.current], {
+                opacity: 0,
+                y: -20,
+                duration: 0.3,
+                ease: "power1.in"
+            }, "-=0.3");
         } else {
             navigate("/lavori");
         }
@@ -439,15 +595,33 @@ const Clienti = () => {
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
 
-        // Piccola animazione della barra di ricerca
+        // Animazione migliorata della barra di ricerca
         if (searchBarRef.current) {
-            gsap.to(searchBarRef.current, {
-                scale: 1.02,
-                duration: 0.15,
-                yoyo: true,
-                repeat: 1,
-                ease: "power1.out"
-            });
+            gsap.fromTo(
+                searchBarRef.current,
+                {scale: 1},
+                {
+                    scale: 1.02,
+                    duration: 0.2,
+                    ease: "elastic.out(1.2, 0.5)"
+                }
+            );
+
+            // Aggiunge un effetto di brillamento al contorno
+            const searchBox = searchBarRef.current.querySelector('input');
+            if (searchBox) {
+                gsap.fromTo(
+                    searchBox,
+                    {boxShadow: "0 0 0 0 rgba(99, 102, 241, 0)"},
+                    {
+                        boxShadow: "0 0 0 3px rgba(99, 102, 241, 0.15)",
+                        duration: 0.3,
+                        ease: "power1.out",
+                        yoyo: true,
+                        repeat: 1
+                    }
+                );
+            }
         }
 
         setSearchTerm(value);
@@ -553,11 +727,14 @@ const Clienti = () => {
                             </DialogTrigger>
 
                             <DialogContent
-                                className="p-0 overflow-hidden border-0 shadow-2xl sm:max-w-md"
+                                className="p-0 overflow-hidden border-0 shadow-2xl sm:max-w-md modal-mobile-fix"
+                                style={{
+                                    borderRadius: "0.75rem"
+                                }}
                             >
                                 <div
                                     ref={modalContentRef}
-                                    className="bg-white/90 backdrop-blur-xl relative"
+                                    className="bg-white/90 backdrop-blur-xl relative modal-mobile-content"
                                 >
                                     {/* Effetto acrilico con riflesso */}
                                     <div
@@ -671,7 +848,7 @@ const Clienti = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="flex justify-end gap-3 pt-2">
+                                            <div className="flex justify-end gap-3 pt-2 modal-mobile-buttons">
                                                 <Button
                                                     type="button"
                                                     variant="outline"
@@ -716,10 +893,13 @@ const Clienti = () => {
 
                 {/* Dialog di conferma eliminazione */}
                 <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                    <DialogContent className="p-0 overflow-hidden border-0 shadow-xl sm:max-w-sm">
+                    <DialogContent className="p-0 overflow-hidden border-0 shadow-xl sm:max-w-sm modal-mobile-fix"
+                                   style={{
+                                       borderRadius: "0.75rem"
+                                   }}>
                         <div
                             ref={deleteDialogRef}
-                            className="bg-white/90 backdrop-blur-xl relative"
+                            className="bg-white/90 backdrop-blur-xl relative modal-mobile-content"
                         >
                             {/* Effetto acrilico con riflesso */}
                             <div
@@ -752,7 +932,7 @@ const Clienti = () => {
                                     </DialogDescription>
                                 </DialogHeader>
 
-                                <DialogFooter className="flex justify-end gap-3 pt-6">
+                                <DialogFooter className="flex justify-end gap-3 pt-6 modal-mobile-buttons">
                                     <Button
                                         type="button"
                                         variant="outline"
@@ -842,10 +1022,9 @@ const Clienti = () => {
 
                                 <CardHeader className="pb-2 relative">
                                     <CardTitle className="flex items-center justify-between">
-                                            <span
-                                                className="text-lg font-semibold text-slate-800 truncate">
-                                                {cliente.nome} {cliente.cognome}
-                                            </span>
+                                        <span className="text-lg font-semibold text-slate-800 truncate">
+                                            {cliente.nome} {cliente.cognome}
+                                        </span>
                                         <div className="flex shrink-0 gap-1">
                                             <Button
                                                 size="sm"
