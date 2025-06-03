@@ -27,7 +27,8 @@ import {
     ArrowRight,
     Users,
     AlertCircle,
-    CheckCircle2
+    CheckCircle2,
+    BarChart3
 } from "lucide-react";
 import {toast} from "@/hooks/use-toast";
 import gsap from "gsap";
@@ -89,38 +90,38 @@ const Clienti = () => {
     useEffect(() => {
         const style = document.createElement('style');
         style.innerHTML = `
-            @media (max-width: 640px) {
-              .modal-mobile-fix {
-                position: fixed !important;
-                inset: auto !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%, -50%) !important;
-                padding: 0 !important;
-                max-width: calc(100% - 2rem) !important;
-                width: calc(100% - 2rem) !important;
-                max-height: 80vh !important;
-                border-radius: 1.2rem !important;
-                margin: 0 !important;
-                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
-              }
-
-              .modal-mobile-content {
-                padding: 1.25rem !important;
-              }
-
-              .modal-mobile-buttons {
-                padding-top: 1rem !important;
-                margin-top: 0.5rem !important;
-              }
-            }
-
-            @supports (padding: max(0px)) {
-              .modal-mobile-fix {
-                padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
-              }
-            }
-        `;
+                @media (max-width: 640px) {
+                  .modal-mobile-fix {
+                    position: fixed !important;
+                    inset: auto !important;
+                    top: 50% !important;
+                    left: 50% !important;
+                    transform: translate(-50%, -50%) !important;
+                    padding: 0 !important;
+                    max-width: calc(100% - 2rem) !important;
+                    width: calc(100% - 2rem) !important;
+                    max-height: 80vh !important;
+                    border-radius: 1.2rem !important;
+                    margin: 0 !important;
+                    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+                  }
+    
+                  .modal-mobile-content {
+                    padding: 1.25rem !important;
+                  }
+    
+                  .modal-mobile-buttons {
+                    padding-top: 1rem !important;
+                    margin-top: 0.5rem !important;
+                  }
+                }
+    
+                @supports (padding: max(0px)) {
+                  .modal-mobile-fix {
+                    padding-bottom: max(1.5rem, env(safe-area-inset-bottom)) !important;
+                  }
+                }
+            `;
         document.head.appendChild(style);
 
         return () => {
@@ -349,6 +350,39 @@ const Clienti = () => {
         } else {
             logout();
             navigate("/");
+        }
+    };
+
+    const handleNavigateToDashboard = () => {
+        // Animazione per la transizione alla dashboard
+        if (headerRef.current && cardGridRef.current && searchBarRef.current) {
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    navigate("/dashboard");
+                }
+            });
+
+            // Fade out delle card con stagger e movimento verso il basso
+            tl.to(cardGridRef.current.children, {
+                y: 20,
+                opacity: 0,
+                scale: 0.95,
+                stagger: 0.03,
+                duration: 0.4,
+                ease: "power2.in",
+                willChange: "transform, opacity"
+            });
+
+            // Fade out contemporaneo di header e barra di ricerca
+            tl.to([headerRef.current, searchBarRef.current], {
+                y: -10,
+                opacity: 0,
+                duration: 0.3,
+                ease: "power1.in",
+                willChange: "transform, opacity"
+            }, "-=0.2");
+        } else {
+            navigate("/dashboard");
         }
     };
 
@@ -671,6 +705,17 @@ const Clienti = () => {
                         </div>
 
                         <div className="flex items-center gap-4">
+                            {/* Pulsante Dashboard */}
+                            <Button
+                                variant="outline"
+                                onClick={handleNavigateToDashboard}
+                                className="flex items-center gap-2 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                                disabled={isLoading}
+                            >
+                                <BarChart3 className="h-4 w-4"/>
+                                <span>Dashboard</span>
+                            </Button>
+
                             <Button
                                 variant="outline"
                                 onClick={handleLogout}
@@ -1022,9 +1067,9 @@ const Clienti = () => {
 
                                 <CardHeader className="pb-2 relative">
                                     <CardTitle className="flex items-center justify-between">
-                                        <span className="text-lg font-semibold text-slate-800 truncate">
-                                            {cliente.nome} {cliente.cognome}
-                                        </span>
+                                            <span className="text-lg font-semibold text-slate-800 truncate">
+                                                {cliente.nome} {cliente.cognome}
+                                            </span>
                                         <div className="flex shrink-0 gap-1">
                                             <Button
                                                 size="sm"

@@ -29,7 +29,9 @@ import {
     Info,
     CheckCircle2,
     ClipboardList,
-    AlertCircle
+    AlertCircle,
+    BarChart3,
+    LogOut
 } from 'lucide-react';
 import {toast} from '@/hooks/use-toast';
 import gsap from 'gsap';
@@ -44,7 +46,7 @@ interface Pagamento {
 }
 
 const Pagamenti = () => {
-    const {isAuthenticated} = useAuth();
+    const {isAuthenticated, logout} = useAuth();
     const navigate = useNavigate();
     const [pagamenti, setPagamenti] = useState<Pagamento[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -232,6 +234,43 @@ const Pagamenti = () => {
         } else {
             navigate(-1);
         }
+    };
+
+    // Funzione per navigare alla dashboard
+    const handleNavigateToDashboard = () => {
+        // Animazione di uscita ottimizzata
+        if (headerRef.current && tableRef.current) {
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    navigate("/dashboard");
+                }
+            });
+
+            tl.to(tableRef.current, {
+                y: 30,
+                opacity: 0,
+                scale: 0.95,
+                duration: 0.25,
+                ease: "power2.in",
+                force3D: true
+            });
+
+            tl.to(headerRef.current, {
+                y: -20,
+                opacity: 0,
+                duration: 0.25,
+                ease: "power2.in",
+                force3D: true
+            }, "-=0.2");
+        } else {
+            navigate("/dashboard");
+        }
+    };
+
+    // Funzione per il logout
+    const handleLogout = () => {
+        logout();
+        navigate("/");
     };
 
     const handleAddPagamento = () => {
@@ -466,6 +505,31 @@ const Pagamenti = () => {
                                 <CreditCard className="h-5 w-5 text-white"/>
                             </div>
                             <h1 className="text-xl font-semibold text-slate-800">Gestione Pagamenti</h1>
+                        </div>
+
+                        {/* Pulsanti Dashboard e Logout */}
+                        <div className="flex items-center gap-4">
+                            {/* Pulsante Dashboard */}
+                            <Button
+                                variant="outline"
+                                onClick={handleNavigateToDashboard}
+                                className="flex items-center gap-2 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                                disabled={loading}
+                            >
+                                <BarChart3 className="h-4 w-4"/>
+                                <span>Dashboard</span>
+                            </Button>
+
+                            {/* Pulsante Logout */}
+                            <Button
+                                variant="outline"
+                                onClick={handleLogout}
+                                className="flex items-center gap-2 border-slate-200 text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                                disabled={loading}
+                            >
+                                <LogOut className="h-4 w-4"/>
+                                <span>Logout</span>
+                            </Button>
                         </div>
                     </div>
                 </div>
