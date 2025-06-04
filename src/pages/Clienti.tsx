@@ -296,7 +296,7 @@ const Clienti = () => {
     const fetchClienti = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("https://api.stackhorizon.it/sh/getClienti", {
+            const response = await fetch("https://api.zimaserver.it/sh/getClienti", {
                 method: "GET",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
@@ -443,7 +443,7 @@ const Clienti = () => {
 
         if (editingCliente) {
             try {
-                const response = await fetch(`https://api.stackhorizon.it/sh/updateCliente/${editingCliente.id}`, {
+                const response = await fetch(`https://api.zimaserver.it/sh/updateCliente/${editingCliente.id}`, {
                     method: "PATCH",
                     headers: {"Content-Type": "application/json"},
                     credentials: "include",
@@ -473,7 +473,7 @@ const Clienti = () => {
             }
         } else {
             try {
-                const response = await fetch("https://api.stackhorizon.it/sh/addCliente", {
+                const response = await fetch("https://api.zimaserver.it/sh/addCliente", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     credentials: "include",
@@ -534,7 +534,7 @@ const Clienti = () => {
 
         setIsDeleting(true);
         try {
-            const response = await fetch(`https://api.stackhorizon.it/sh/deleteCliente/${clientToDelete}`, {
+            const response = await fetch(`https://api.zimaserver.it/sh/deleteCliente/${clientToDelete}`, {
                 method: "DELETE",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",

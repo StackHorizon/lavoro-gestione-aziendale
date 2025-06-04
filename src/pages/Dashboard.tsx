@@ -158,7 +158,7 @@ const Dashboard = () => {
 
             const results = await Promise.all(
                 endpoints.map(endpoint =>
-                    fetch(`https://api.stackhorizon.it/sh/${endpoint}`, {
+                    fetch(`https://api.zimaserver.it/sh/${endpoint}`, {
                         method: "GET",
                         headers: {"Content-Type": "application/json"},
                         credentials: "include",

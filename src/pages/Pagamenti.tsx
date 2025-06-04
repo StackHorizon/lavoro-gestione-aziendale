@@ -191,7 +191,7 @@ const Pagamenti = () => {
     const fetchPagamenti = async (id: number) => {
         setLoading(true);
         try {
-            const res = await fetch(`https://api.stackhorizon.it/sh/getPagamenti/${id}`, {
+            const res = await fetch(`https://api.zimaserver.it/sh/getPagamenti/${id}`, {
                 method: "GET",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
@@ -322,7 +322,7 @@ const Pagamenti = () => {
 
         setIsDeleting(true);
         try {
-            const res = await fetch(`https://api.stackhorizon.it/sh/deletePagamento/${pagamentoToDelete}`, {
+            const res = await fetch(`https://api.zimaserver.it/sh/deletePagamento/${pagamentoToDelete}`, {
                 method: "DELETE",
                 headers: {"Content-Type": "application/json"},
                 credentials: "include",
@@ -397,7 +397,7 @@ const Pagamenti = () => {
         setLoading(true);
         try {
             if (editingPagamento) {
-                const response = await fetch(`https://api.stackhorizon.it/sh/updatePagamento/${editingPagamento.id}`, {
+                const response = await fetch(`https://api.zimaserver.it/sh/updatePagamento/${editingPagamento.id}`, {
                     method: "PATCH",
                     headers: {"Content-Type": "application/json"},
                     credentials: "include",
@@ -410,7 +410,7 @@ const Pagamenti = () => {
                 }
                 toast({title: data.message, variant: response.ok ? "default" : "destructive"});
             } else {
-                const res = await fetch("https://api.stackhorizon.it/sh/addPagamento", {
+                const res = await fetch("https://api.zimaserver.it/sh/addPagamento", {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     credentials: "include",

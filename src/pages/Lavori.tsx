@@ -289,7 +289,7 @@ import React, {useState, useEffect, useRef} from 'react';
         const fetchLavori = async (id: number) => {
             setLoading(true);
             try {
-                const res = await fetch(`https://api.stackhorizon.it/sh/getLavori/${id}`, {
+                const res = await fetch(`https://api.zimaserver.it/sh/getLavori/${id}`, {
                     method: "GET",
                     headers: {"Content-Type": "application/json"},
                     credentials: "include",
@@ -473,7 +473,7 @@ import React, {useState, useEffect, useRef} from 'react';
 
             if (editingLavoro) {
                 try {
-                    const response = await fetch(`https://api.stackhorizon.it/sh/updateLavoro/${editingLavoro.id}`, {
+                    const response = await fetch(`https://api.zimaserver.it/sh/updateLavoro/${editingLavoro.id}`, {
                         method: "PATCH",
                         headers: {"Content-Type": "application/json"},
                         credentials: "include",
@@ -504,7 +504,7 @@ import React, {useState, useEffect, useRef} from 'react';
                 }
             } else {
                 try {
-                    const res = await fetch("https://api.stackhorizon.it/sh/addLavoro", {
+                    const res = await fetch("https://api.zimaserver.it/sh/addLavoro", {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
                         credentials: "include",
@@ -558,7 +558,7 @@ import React, {useState, useEffect, useRef} from 'react';
 
             setIsDeleting(true);
             try {
-                const response = await fetch(`https://api.stackhorizon.it/sh/deleteLavoro/${lavoroToDelete}`, {
+                const response = await fetch(`https://api.zimaserver.it/sh/deleteLavoro/${lavoroToDelete}`, {
                     method: "DELETE",
                     headers: {"Content-Type": "application/json"},
                     credentials: "include",
