@@ -650,24 +650,31 @@ const Dashboard = () => {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="h-[300px] relative">
-                                        <Doughnut data={doughnutChartData} options={{
-                                            ...doughnutOptions,
-                                            cutout: '70%',
-                                            plugins: {
-                                                legend: {
-                                                    position: 'right' as const,
-                                                    align: 'center' as const,
-                                                },
-                                                tooltip: doughnutOptions.plugins.tooltip
-                                            }
-                                        }}/>
-                                        <div
-                                            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
-                                            style={{transform: 'translateX(-11%)'}}>
+                                    <div className="h-[300px] relative flex">
+                                        <div className="flex-1 relative">
+                                            <Doughnut data={doughnutChartData} options={{
+                                                ...doughnutOptions,
+                                                cutout: '70%',
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'right' as const,
+                                                        align: 'center' as const,
+                                                    },
+                                                    tooltip: doughnutOptions.plugins.tooltip
+                                                }
+                                            }}/>
                                             <div
-                                                className="text-3xl font-bold text-slate-800">{stats.totaleProgetti}</div>
-                                            <div className="text-xs text-slate-500">Progetti totali</div>
+                                                className="absolute pointer-events-none flex flex-col items-center justify-center"
+                                                style={{
+                                                    left: '38.5%',  // Ridotto da 40% a 35% per centrare meglio rispetto alla ciambella
+                                                    top: '50%',
+                                                    transform: 'translate(-50%, -50%)',
+                                                    width: 'auto'
+                                                }}>
+                                                <div
+                                                    className="text-3xl font-bold text-slate-800">{stats.totaleProgetti}</div>
+                                                <div className="text-xs text-slate-500">Progetti totali</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </CardContent>
